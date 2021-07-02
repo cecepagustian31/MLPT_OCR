@@ -3,11 +3,11 @@ package com.uthoo.www.ocr;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -15,21 +15,22 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mlpt_ocr.OCR;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.google.android.gms.vision.text.TextRecognizer;
 
 public class MainActivity extends AppCompatActivity {
     private TextView scanResults;
     private ImageView imageView;
+    private Uri imageUri;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Button button = (Button) findViewById(R.id.button);
         scanResults = (TextView) findViewById(R.id.results);
-        imageView = findViewById(R.id.imageView);
+        imageView = (ImageView) findViewById(R.id.imageView);
         if (savedInstanceState != null) {
+            imageUri = Uri.parse(savedInstanceState.getString("uri"));
             scanResults.setText(savedInstanceState.getString("result"));
         }
         button.setOnClickListener(new View.OnClickListener() {
@@ -57,23 +58,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 10 && resultCode == RESULT_OK) {
-            try {
-                scanResults.setText(OCR.convertText(MainActivity.this, imageView).toString());
-
-            } catch (Exception e) {
-                Toast.makeText(this, "Failed to load Image", Toast.LENGTH_SHORT)
-                        .show();
-                Log.e("Text API", e.toString());
-            }
+            scanResults.setText(OCR.convertText(MainActivity.this, imageView).toString());
         }
     }
 
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        if (OCR.imageUri != null) {
-            outState.putString("uri", OCR.imageUri.toString());
+        if (imageUri != null) {
+            outState.putString("uri", imageUri.toString());
             outState.putString("result", scanResults.getText().toString());
         }
         super.onSaveInstanceState(outState);
     }
+
+
 }
